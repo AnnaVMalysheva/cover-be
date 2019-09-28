@@ -61,7 +61,12 @@ public class MapController {
     }
 
     @GetMapping("/mobiletrack")
-    public List<MobileTrackDto> getMobileTracks() {
-        return loadService.getMobileTracks();
+    public List<MobileTrackDto> getMobileTracks(@RequestParam("operator") String operator) {
+        return loadService.getMobileTracks(operator);
+    }
+
+    @GetMapping("/test")
+    public void test() {
+        loadService.hardcodeMobileTracks();
     }
 }

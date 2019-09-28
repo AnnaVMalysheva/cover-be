@@ -32,5 +32,7 @@ public interface LoadService {
 
     void saveMobileTrack(MobileTrackDto mobileTrackDto);
 
-    List<MobileTrackDto> getMobileTracks();
+    List<MobileTrackDto> getMobileTracks(String operator);
+
+    void hardcodeMobileTracks();
 }

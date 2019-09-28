@@ -10,5 +10,5 @@ import java.util.List;
 
 @Repository
 public interface MobileTrackRepository extends JpaRepository<MobileTrack, Long> {
-
+    List<MobileTrack> findByOperatorLike(String operator);
 }

@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -83,9 +84,6 @@ public class LoadServiceImpl implements LoadService {
 
     @Override
     public Set<RecordDto> getCoordinates() {
-//        List<Point> records = recordRepository.findReports();
-//        return records.stream().map(record -> RecordDto.builder().lan(record.getX()).log(record.getY()).build()).collect(Collectors.toList());
-        //List<Record> records = recordRepository.findReports();
         List<Record> records = recordRepository.findAll();
         return records.stream().map(record ->
                 RecordDto.builder()
@@ -143,16 +141,13 @@ public class LoadServiceImpl implements LoadService {
             records.add(route);
             routeRepository.save(route);
         }
-        //routeRepository.saveAll(records);
+
     }
 
     @Override
     public Map<String, List<StopPositionDto>> getAllRoutes() {
-        /*List<Route> allRoutes = routeRepository.findRoutes();
-        return allRoutes.stream().collect(
-                Collectors.toMap(Route::getName, route -> StopPositionMapper.asDtos(route.getStops())));*/
         Map<String, List<StopPositionDto>> result = new HashMap<>();
-        Route byNameIs = routeRepository.findByNameIs("2924444");
+        Route byNameIs = routeRepository.findByNameIs("2983554");
         List<StopPosition> stops = routeStopRepository.findByRouteOrderByPosition(byNameIs)
                 .stream().map(RouteStop::getStop).collect(Collectors.toList());
         result.put(byNameIs.getName(), StopPositionMapper.asDtos(stops));
@@ -170,7 +165,34 @@ public class LoadServiceImpl implements LoadService {
     }
 
     @Override
-    public List<MobileTrackDto> getMobileTracks() {
-       return MobileTrackMapper.asDtos(mobileTrackRepository.findAll());
+    public List<MobileTrackDto> getMobileTracks(String operator) {
+       return MobileTrackMapper.asDtos(mobileTrackRepository.findByOperatorLike(operator));
     }
+
+    @Override
+    public void hardcodeMobileTracks() {
+        List<MobileTrack> mobileTracks = new ArrayList<>();
+        Double rangeMinX = 56.397818;
+        Double rangeMaxX = 56.228216;
+        Double rangeMinY = 43.709052;
+        Double rangeMaxY = 44.292155;
+        Double lat;
+        Double lng;
+        Integer level;
+        Point point;
+        Integer operatorId;
+        String[] operators = {"Мегафон", "Теле2", "МТС", "Билайн"};
+        Random r = new Random();
+        for(int i = 0; i < 10000; i++) {
+            lat = rangeMinX + (rangeMaxX - rangeMinX) * r.nextDouble();
+            lng = rangeMinY + (rangeMaxY - rangeMinY) * r.nextDouble();
+            operatorId = r.nextInt(4);
+            level= r.nextInt(14);
+            point = geometryFactory.createPoint(new Coordinate(lat, lng));
+            mobileTracks.add(MobileTrack.builder().coordinates(point).trackDate(Instant.now().toEpochMilli()).
+                    level(level.toString()).typeConnection("conn" + i).mobileId("mobile" + i).operator(operators[operatorId]).build());
+        }
+        mobileTrackRepository.saveAll(mobileTracks);
+    }
+
 }
