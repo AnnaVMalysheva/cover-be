@@ -1,5 +1,6 @@
 package com.hackathon.coverbe.controller;
 
+import com.hackathon.coverbe.dto.MobileTrackDto;
 import com.hackathon.coverbe.dto.RecordDto;
 import com.hackathon.coverbe.dto.StopPositionDto;
 import com.hackathon.coverbe.service.LoadService;
@@ -52,5 +53,15 @@ public class MapController {
     @GetMapping("/allRoutes")
     public Map<String, List<StopPositionDto>> getAllRoutes() {
         return loadService.getAllRoutes();
+    }
+
+    @PostMapping("/mobiletrack")
+    public void addMobileTrack(@RequestBody MobileTrackDto mobileTrackDto) {
+        loadService.saveMobileTrack(mobileTrackDto);
+    }
+
+    @GetMapping("/mobiletrack")
+    public List<MobileTrackDto> getMobileTracks() {
+        return loadService.getMobileTracks();
     }
 }

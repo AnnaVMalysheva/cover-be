@@ -1,16 +1,12 @@
 package com.hackathon.coverbe.service.impl;
 
+import com.hackathon.coverbe.dto.MobileTrackDto;
 import com.hackathon.coverbe.dto.RecordDto;
 import com.hackathon.coverbe.dto.StopPositionDto;
-import com.hackathon.coverbe.entity.Record;
-import com.hackathon.coverbe.entity.Route;
-import com.hackathon.coverbe.entity.RouteStop;
-import com.hackathon.coverbe.entity.StopPosition;
+import com.hackathon.coverbe.entity.*;
+import com.hackathon.coverbe.mapper.MobileTrackMapper;
 import com.hackathon.coverbe.mapper.StopPositionMapper;
-import com.hackathon.coverbe.repository.RecordRepository;
-import com.hackathon.coverbe.repository.RouteRepository;
-import com.hackathon.coverbe.repository.RouteStopRepository;
-import com.hackathon.coverbe.repository.StopPositionRepository;
+import com.hackathon.coverbe.repository.*;
 import com.hackathon.coverbe.service.LoadService;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -44,13 +40,15 @@ public class LoadServiceImpl implements LoadService {
     private final StopPositionRepository stopPositionRepository;
     private final RouteRepository routeRepository;
     private final RouteStopRepository routeStopRepository;
+    private final MobileTrackRepository mobileTrackRepository;
 
     public LoadServiceImpl(RecordRepository recordRepository, StopPositionRepository stopPositionRepository,
-                           RouteRepository routeRepository, RouteStopRepository routeStopRepository) {
+                           RouteRepository routeRepository, RouteStopRepository routeStopRepository, MobileTrackRepository mobileTrackRepository) {
         this.recordRepository = recordRepository;
         this.stopPositionRepository = stopPositionRepository;
         this.routeRepository = routeRepository;
         this.routeStopRepository = routeStopRepository;
+        this.mobileTrackRepository = mobileTrackRepository;
     }
 
     @Override
@@ -87,13 +85,13 @@ public class LoadServiceImpl implements LoadService {
     public Set<RecordDto> getCoordinates() {
 //        List<Point> records = recordRepository.findReports();
 //        return records.stream().map(record -> RecordDto.builder().lan(record.getX()).log(record.getY()).build()).collect(Collectors.toList());
-          //List<Record> records = recordRepository.findReports();
+        //List<Record> records = recordRepository.findReports();
         List<Record> records = recordRepository.findAll();
-          return records.stream().map(record ->
-                  RecordDto.builder()
-                          .latlng(new Double[] {record.getCoordinates().getX(), record.getCoordinates().getY()})
-                          .name(record.getName())
-                          .build()).collect(Collectors.toSet());
+        return records.stream().map(record ->
+                RecordDto.builder()
+                        .latlng(new Double[]{record.getCoordinates().getX(), record.getCoordinates().getY()})
+                        .name(record.getName())
+                        .build()).collect(Collectors.toSet());
 
     }
 
@@ -116,7 +114,7 @@ public class LoadServiceImpl implements LoadService {
 
     @Override
     public List<StopPositionDto> getCoordinatesByRouteName(String routeId) {
-                Route byNameIs = routeRepository.findByNameIs(routeId);
+        Route byNameIs = routeRepository.findByNameIs(routeId);
         List<StopPosition> stops = routeStopRepository.findByRouteOrderByPosition(byNameIs)
                 .stream().map(RouteStop::getStop).collect(Collectors.toList());
         return asDtos(stops);
@@ -134,10 +132,10 @@ public class LoadServiceImpl implements LoadService {
             Iterator<String> iterator = record.iterator();
             iterator.next();
             Integer index = 0;
-            while (iterator.hasNext()){
+            while (iterator.hasNext()) {
                 String stop = iterator.next();
                 StopPosition stopPosition = stopPositionRepository.findByNameIs(stop);
-                if(stopPosition != null) {
+                if (stopPosition != null) {
                     route.addStop(new RouteStop(stopPosition, index));
                     index++;
                 }
@@ -159,5 +157,20 @@ public class LoadServiceImpl implements LoadService {
                 .stream().map(RouteStop::getStop).collect(Collectors.toList());
         result.put(byNameIs.getName(), StopPositionMapper.asDtos(stops));
         return result;
+    }
+
+    @Override
+    @Async
+    public void saveMobileTrack(MobileTrackDto mobileTrackDto) {
+        Point point = geometryFactory.createPoint(new Coordinate(mobileTrackDto.getLat(), mobileTrackDto.getLng()));
+        mobileTrackRepository.save(MobileTrack.builder().coordinates(point)
+                .trackDate(mobileTrackDto.getTrackDate()).level(mobileTrackDto.getLevel())
+                .operator(mobileTrackDto.getOperator()).typeConnection(mobileTrackDto.getTypeConnection())
+                .mobileId(mobileTrackDto.getMobileId()).build());
+    }
+
+    @Override
+    public List<MobileTrackDto> getMobileTracks() {
+       return MobileTrackMapper.asDtos(mobileTrackRepository.findAll());
     }
 }

@@ -1,6 +1,7 @@
 package com.hackathon.coverbe.service;
 
 
+import com.hackathon.coverbe.dto.MobileTrackDto;
 import com.hackathon.coverbe.dto.RecordDto;
 import com.hackathon.coverbe.dto.StopPositionDto;
 import org.springframework.scheduling.annotation.Async;
@@ -28,4 +29,8 @@ public interface LoadService {
     void uploadRoutesFromResources() throws IOException;
 
     Map<String, List<StopPositionDto>> getAllRoutes();
+
+    void saveMobileTrack(MobileTrackDto mobileTrackDto);
+
+    List<MobileTrackDto> getMobileTracks();
 }
