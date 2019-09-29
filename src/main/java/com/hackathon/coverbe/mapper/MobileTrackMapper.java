@@ -1,9 +1,7 @@
 package com.hackathon.coverbe.mapper;
 
 import com.hackathon.coverbe.dto.MobileTrackDto;
-import com.hackathon.coverbe.dto.StopPositionDto;
 import com.hackathon.coverbe.entity.MobileTrack;
-import com.hackathon.coverbe.entity.StopPosition;
 
 import java.util.List;
 import java.util.stream.Collectors;
